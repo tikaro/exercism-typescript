@@ -1,4 +1,4 @@
-export const COLORS: string[] = [
+const COLORS: string[] = [
 "black",
 "brown",
 "red",
@@ -20,18 +20,26 @@ const PREFIXES: string[] = [
 
 export function decodedResistorValue(colorBands: string[]): string {
 
-  const firstTwoColors = colorBands.slice(0, 2);
-  let resistorValue = firstTwoColors.map(valueOfColor.toString).join('');
+  // Calculate the numeric value of the resistor
+  // ['red', 'black', 'red'] is [2, 0, 2]
+  // (10 * 2) + (1 * 0) * (10 ^ 2) -> (200 + 0) * 100 -> 2000
+  const firstColorDigit  = 10 *  valueOf(colorBands[0]);
+  const secondColorDigit =  1 *  valueOf(colorBands[1]);
+  const colorMagnitude   = 10 ** valueOf(colorBands[2]);
+  let resistorValue = (firstColorDigit + secondColorDigit) * colorMagnitude;
+  
+  // Remove zeros three at a time and pick the appropriate prefix
+  // (2000 / 1000) happens once. PREFIXES[1] is 'kilo'
+  let colorPrefix = "";
+  for (let i = 1; i <= 3 && resistorValue >= 1000; i++) {
+    resistorValue /= 1000;
+    colorPrefix = PREFIXES[i];
+  }
 
-  const thirdColor = colorBands[2];
-  resistorValue += '0'.repeat(valueOfColor(thirdColor));
-
-  console.log(`resistorValue: ${resistorValue}`);
-
-  return "hi";
+  // Return the de-zero-ed resistor value and appropriate prefix
+  return (`${resistorValue} ${colorPrefix}ohms`);
 }
 
-/* orange -> 3, black -> 0 */
-function valueOfColor(color: string): number {
+function valueOf(color: string): number {
   return COLORS.indexOf(color);
 }
